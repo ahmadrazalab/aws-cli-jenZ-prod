@@ -1,78 +1,87 @@
->> HOW TO USE
----
-Create a 3 Deployment job in jenkins 
-1- deploy-1 script `deploy in pp and switch the traffic to pp`
-2- deploy-2- script `deploy the code in prod server only ` 
-3- deploy-3 script  ` create ami , create launch template, and create new instance with asg and traffic switch `
----
-Update the Variables as per your enviroment. `Deployment TAG is mandatory to update in every Deployment JOB`
----
-Install aws cli inside the jenkins server and setup the aws configure cmd there with AWS Access keys
-Required access key with full admin rights `Only CLI Access Required`
----
 
----
-# Here is the Deployment setup instructions:
----
+# Deployment Setup Guide 🚀
 
-# Deployment Setup
+This guide walks you through setting up a deployment pipeline using Jenkins for deploying your web application to **PP (Pre-Production)** and **PROD (Production)** environments with AWS services.
 
-This readme provides step-by-step instructions for setting up and deploying your application.
-# Deployment Process README
+## 🛠️ Deployment Process Overview
 
-This document outlines the deployment process for a web application to PP (Pre-Production) and PROD (Production) environments using AWS services like EC2, ELB, and CodeDeploy.
+1. **Deploy to PP** – Deploys the app to the PP server and switches traffic to PP.  
+2. **Deploy to PROD** – Deploys the code to the PROD server only.  
+3. **Create AMI & Launch Template** – Creates a new AMI, launch template, and updates ASG with new instances. Then switches traffic.
 
-## Setup Environment Variables
+## 🚀 Prerequisites
 
-Before starting the deployment process, ensure that the following environment variables are set:
+- **Jenkins** with 3 Deployment jobs (one for each step).
+- **AWS CLI** installed on Jenkins server.
+- **AWS Access Keys** with full admin rights (CLI access required).
+- **Environment Variables** configured in Jenkins.
 
-- `GIT_USERNAME`: Your GitHub username.
-- `GIT_VALID_TOKEN`: Your GitHub personal access token with appropriate permissions.
-- `DEPLOYMENT_TAG`: Tag/version of the deployment.
-- `AMI_NAME`: Name of the Amazon Machine Image (AMI) to be created.
-- `AMI_DESCRIPTION`: Description of the AMI.
-- `EC2_USER`: Username to SSH into EC2 instances.
-- `PP_INSTANCE_ID`: Instance ID of the PP (Pre-Production) server.
-- `PROD_INSTANCE_ID`: Instance ID of the PROD (Production) server.
-- `LAUNCH_TEMPLATE_ID`: ID of the Launch Template used for EC2 instances.
-- `ASG_NAME`: Name of the Auto Scaling Group (ASG) associated with the EC2 instances.
-- `ALB_LISTENER_ARN`: ARN of the Application Load Balancer (ALB) listener.
-- `PP_TG_ARN`: ARN of the target group for PP environment.
-- `PROD_TG_ARN`: ARN of the target group for PROD environment.
+### Mandatory Variables to Set
+- **DEPLOYMENT_TAG**: Deployment version/tag (important for all jobs).  
+- **GIT_USERNAME**: Your GitHub username.  
+- **GIT_VALID_TOKEN**: GitHub personal access token (with required permissions).  
+- **AMI_NAME**: AMI name to be created.  
+- **AMI_DESCRIPTION**: Description for the AMI.  
+- **EC2_USER**: SSH username for EC2 instances.  
+- **PP_INSTANCE_ID**: PP server instance ID.  
+- **PROD_INSTANCE_ID**: PROD server instance ID.  
+- **LAUNCH_TEMPLATE_ID**: Launch Template ID for EC2.  
+- **ASG_NAME**: Auto Scaling Group (ASG) name.  
+- **ALB_LISTENER_ARN**: ARN for the ALB listener.  
+- **PP_TG_ARN**: ARN for the PP target group.  
+- **PROD_TG_ARN**: ARN for the PROD target group.
 
-Replace the placeholder values with your actual credentials and resource identifiers.
+## 🔄 Deployment Steps
 
-## Deployment Steps
+### Step 1: **Deploy to PP** (Job 1)
 
-1. **Start the PP Server Instance:** Initiates the PP server instance to begin deployment.
+1. **Start PP Server Instance**: Initiates the PP server for deployment.  
+2. **Wait for PP Instance to Pass Checks**: Waits until the PP server is healthy.  
+3. **Deploy Code to PP Server**: Deploys your app code from GitHub to the PP server via SSH.  
+4. **Health Check**: Verifies PP server is healthy in the target group.  
+5. **Balance Traffic**: Switches traffic between PP and PROD instances via the ALB listener.
 
-2. **Wait for Instance Status:** Waits until the PP instance passes the status checks before proceeding.
+### Step 2: **Deploy to PROD** (Job 2)
 
-3. **Deploy Code to PP Server:** Connects to the PP server via SSH and deploys the application code from the specified GitHub repository. Additionally, restarts the Nginx service to apply changes.
+1. **Deploy Code to PROD**: Deploys code to the PROD server.  
+2. **Health Check**: Verifies the health status of the PROD server.  
+3. **Validate Application**: Ensures the app is working after deployment.
 
-4. **Check PP Server Health:** Monitors the health status of instances in the PP target group until all are healthy.
+### Step 3: **Create AMI & Update ASG** (Job 3)
 
-5. **Balance Traffic between PP and PROD:** Modifies the ALB listener configuration to distribute incoming traffic evenly between the PP and PROD instances.
+1. **Create New AMI**: Creates a new AMI from the PROD instance.  
+2. **Update Launch Template**: Updates the Launch Template with the new AMI.  
+3. **Update ASG**: Terminates old instances and launches new ones with the updated AMI.  
+4. **Switch Traffic**: Modifies the ALB listener to shift traffic as needed.
 
-6. **Validate Application Integrity:** Waits for a specified duration to ensure the application's stability after the traffic distribution changes.
-
-7. **Repeat Deployment Steps for PROD:** Follows similar steps to deploy the application to the PROD environment.
-
-8. **Create AMI and Update ASG:** Creates a new Amazon Machine Image (AMI) from the PROD instance and updates the Launch Template with the new AMI. It then updates the Auto Scaling Group (ASG) to terminate old instances and launch new instances with the updated configuration.
-
-9. **Stop PP Instance:** Stops the PP instance once deployment is completed and verified.
-
-## Conclusion
-
-This README provides an overview of the deployment process for deploying a web application to both PP and PROD environments using AWS CLI commands. Ensure to set up the required environment variables and follow each step carefully for a successful deployment.
----
+### Step 4: **Stop PP Instance**:  
+Stops the PP instance after successful deployment.
 
 ---
 
-This readme provides a detailed guide to deploy your application using AWS services and CLI commands.
+## ⚙️ How to Configure Jenkins Jobs
 
-For any further assistance, Read the PDF attached.
+1. **Create 3 Jenkins Jobs**:  
+   - **deploy-1**: Deploys to PP and switches traffic.  
+   - **deploy-2**: Deploys to PROD.  
+   - **deploy-3**: Creates AMI, updates launch template, and updates ASG.
+
+2. **Install AWS CLI on Jenkins Server**:  
+   - Ensure AWS CLI is configured on the Jenkins server using `aws configure` with your AWS Access Keys.  
+   - Required access: **Full Admin Rights** (CLI access only).
+
+3. **Update Variables**:  
+   - Set the environment variables as described above before running the deployment jobs.  
+   - Make sure **DEPLOYMENT_TAG** is updated in each Jenkins job.
 
 ---
 
-Feel free to customize according to your specific deployment process and environment.
+## 🎯 Conclusion
+
+This guide provides a simple yet detailed process to deploy your web application to **PP** and **PROD** environments using AWS and Jenkins. Ensure that your environment variables are correctly configured, and follow the steps for each deployment job to achieve successful deployments.
+
+For further help, check the attached PDF or visit the docs at [docs.ahmadraza.in](https://docs.ahmadraza.in).
+
+
+--- 
+
