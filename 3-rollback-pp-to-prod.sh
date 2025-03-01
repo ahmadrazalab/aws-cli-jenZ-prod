@@ -1,15 +1,11 @@
-export AWS_DEFAULT_REGION=xxxxxxxxxxxxx
+export AWS_DEFAULT_REGION=ap-south-1
 # NOTE : Traffic Switch from PROD to PP only (3 Steps )
 
-
 # Replace YOUR_TARGET_GROUP_ARN with the ARN of your target group
-export ALB_LISTENER_ARN=arn:aws:elasticloadbalancing:ap-south-1:xxxxxxxxxxxxx:listener/app/JENZ/xxxxxxxxxxxxx/xxxxxxxxxxxxx
-# MPTG-TG-1
-export PP_TG_ARN="arn:aws:elasticloadbalancing:ap-south-1:xxxxxxxxxxxxx:targetgroup/PP-TG-1/xxxxxxxxxxxxx"
-# MPTG-TG
-export PROD_TG_ARN="arn:aws:elasticloadbalancing:ap-south-1:xxxxxxxxxxxxx:targetgroup/PROD-TG-2/xxxxxxxxxxxxx"
+export ALB_LISTENER_ARN=arn:aws:elasticloadbalancing:ap-south-1:<number>:listener/app/<name>/<id>/<id>
+export PP_TG_ARN="arn:aws:elasticloadbalancing:ap-south-1:<number>:targetgroup/<name>/<id>"
+export PROD_TG_ARN="arn:aws:elasticloadbalancing:ap-south-1:<number>:targetgroup/<name>/<id>"
 #####################################################################################################################
-
 
 
 # ALB HealthCheck status of instances in the target group of PP for the traffic switch 
@@ -37,19 +33,31 @@ aws elbv2 modify-listener \
       \"ForwardConfig\": {
          \"TargetGroups\": [
            { \"TargetGroupArn\": \"$PROD_TG_ARN\",
-             \"Weight\": 0 },
+             \"Weight\": 1 },
            { \"TargetGroupArn\": \"$PP_TG_ARN\",
-             \"Weight\": 100 }
+             \"Weight\": 0 }
          ],
          \"TargetGroupStickinessConfig\": {
              \"Enabled\": true,
-             \"DurationSeconds\": 3600
+             \"DurationSeconds\": 300
          }
       }
   }]"
+ 
+
+#### To Enable the LB Stikness Use Below Code in Above Code :
+#         \"TargetGroupStickinessConfig\": {
+#             \"Enabled\": false
+#         }
+#      }
+##################
+#         \"TargetGroupStickinessConfig\": {
+#             \"Enabled\": true,
+#             \"DurationSeconds\": 600
+#         }
+##################################
 
 
 
-echo " 100% traffic is on PP Server wait 5 min to check the payment crash while 100% LOAD on Server " 
 
 
